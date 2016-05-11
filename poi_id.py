@@ -53,8 +53,8 @@ data_sorted = sorted( zip(data_dict.keys(),
 		key=lambda x:( num(x[2]), num(x[1]), num(x[3]), x[0]), reverse = True)[0:int(round(len(data_dict)*0.1))]
 
 for x in data_sorted:
-	print "Popped: ", x[0]
 	data_dict.pop(x[0],0)
+	print "Popped: ", x[0]
 
 
 ### Task 3: Create new feature(s)
