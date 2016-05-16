@@ -23,14 +23,15 @@ from tester import dump_classifier_and_data
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 features_list = ['poi','salary', 'bonus', 'total_payments', 'exercised_stock_options', 
-		'from_poi_to_this_person', 'from_this_person_to_poi', 'shared_receipt_with_poi', 'director_fees', 'to_messages'] # You will need to use more features
+		'from_poi_to_this_person', 'from_this_person_to_poi', 'shared_receipt_with_poi',  'to_messages'] # You will need to use more features
+		#'director_fees',
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
 print "Data points: ", len(data_dict)
-print data_dict[data_dict.keys()[0]]
+#print data_dict[data_dict.keys()[0]]
 
 ### Task 2: Remove outliers
 
@@ -60,32 +61,32 @@ for x in data_sorted:
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
-
+poi_count = 0
 for x in my_dataset:
-	my_dataset[x]['salary'] = num(my_dataset[x]['salary']) + num(my_dataset[x]['director_fees'])
-	print 'New salary:', my_dataset[x]['salary']
-	if num(my_dataset[x]['total_payments']) == 0.0 or math.isnan(num(my_dataset[x]['total_payments'])):
+	#print 'Old salary:', my_dataset[x]['salary']
+	#my_dataset[x]['salary'] = num(my_dataset[x]['salary']) + num(my_dataset[x]['director_fees'])
+	#print 'New salary:', my_dataset[x]['salary']
+	if math.isnan(num(my_dataset[x]['total_payments'])):
 		my_dataset[x]['ratio_sal_totalp'] = 0.0
 	else:
-		if math.isnan(num(my_dataset[x]['salary'])):
+		if num(my_dataset[x]['total_payments']) == 0.0:
 			my_dataset[x]['ratio_sal_totalp'] = 0.0
 		else:
 			my_dataset[x]['ratio_sal_totalp'] = num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
 			#my_dataset[x]['ratio_sal_totalp'] = num(my_dataset[x]['salary'])/num(my_dataset[x]['exercised_stock_options'])
-			if my_dataset[x]['poi']:
-				print 'POI:', num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
-				print 'salary:', num(my_dataset[x]['salary'])
-				print 'total paymnt:', num(my_dataset[x]['total_payments'])
-			else:
-				print 'NON-POI:', num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])		
+			#if my_dataset[x]['poi']:
+			#	print 'POI:', num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
+			#else:
+			#	print 'NON-POI:', num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
+			#print 'salary:', num(my_dataset[x]['salary'])
+			#print 'total paymnt:', num(my_dataset[x]['total_payments'])
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
 
-print data
-
 count_poi = 0
+count_nonpoi = 0
 count_all = len(data)
 
 for point in data:
@@ -94,25 +95,26 @@ for point in data:
     tpayments = point[3]
     exoptions = point[4]
     sal_total = point[7]
-    director_fee = point[8]
-    if point[0] != 0.0 :
-    	#POI
-    	count_poi = count_poi + 1
-    	#matplotlib.pyplot.scatter( salary, tpayments, c='blue' )
-    	#matplotlib.pyplot.scatter( salary, bonus, c='yellow' )
-    	#matplotlib.pyplot.scatter( salary, sal_total, c='red' )
-    	matplotlib.pyplot.scatter( salary, director_fee, c='yellow' )
-    #else:
-        # Non POI
-    	#matplotlib.pyplot.scatter( salary, tpayments, c='white' )
-    	#matplotlib.pyplot.scatter( salary, bonus, c='red' )
-    	#matplotlib.pyplot.scatter( salary, sal_total, c='black' )
+    #director_fee = point[8]
+    #print point[0]
+    if float(point[0]) == 0.0 :
+    	# Non POI
+	#matplotlib.pyplot.scatter( salary, tpayments, c='white' )
+	#matplotlib.pyplot.scatter( salary, bonus, c='red' )
+	#matplotlib.pyplot.scatter( salary, sal_total, c='black' )
+	#print salary,':', sal_total
+	count_nonpoi = count_nonpoi + 1
     	#matplotlib.pyplot.scatter( salary, director_fee, c='black' )
     	
-    #matplotlib.pyplot.scatter( salary, exoptions, c='green' )
-    
-    
-#matplotlib.pyplot.xlabel("salary")
+    else:
+    	#POI
+	count_poi = count_poi + 1
+	#matplotlib.pyplot.scatter( salary, tpayments, c='blue' )
+	#matplotlib.pyplot.scatter( salary, bonus, c='yellow' )
+	#matplotlib.pyplot.scatter( salary, sal_total, c='red' )
+    	#matplotlib.pyplot.scatter( salary, director_fee, c='yellow' )
+
+matplotlib.pyplot.xlabel("salary")
 #matplotlib.pyplot.ylabel("bonus")
 matplotlib.pyplot.show()
 
@@ -125,8 +127,12 @@ print count_poi
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
+#from sklearn.naive_bayes import GaussianNB
+#clf = GaussianNB()
+#clf.fit(features, labels)
+
+from sklearn.tree import DecisionTreeClassifier
+clf = DecisionTreeClassifier(random_state=0, max_depth=3)
 clf.fit(features, labels)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
