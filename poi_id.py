@@ -23,9 +23,10 @@ from tester import dump_classifier_and_data
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 features_list = ['poi','salary', 'bonus', 'total_payments', 'exercised_stock_options', 'director_fees',
-		'from_poi_to_this_person', 'from_this_person_to_poi',   'to_messages'] # You will need to use more features
+		'from_poi_to_this_person', 'from_this_person_to_poi'] # You will need to use more features
 		#'shared_receipt_with_poi',
-
+		#, 'to_messages'
+		
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
@@ -81,6 +82,8 @@ for x in my_dataset:
 			#print 'salary:', num(my_dataset[x]['salary'])
 			#print 'total paymnt:', num(my_dataset[x]['total_payments'])
 
+features_list.append("ratio_sal_totalp")
+
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
@@ -115,10 +118,10 @@ for point in data:
     	#matplotlib.pyplot.scatter( salary, director_fee, c='yellow' )
 
 matplotlib.pyplot.xlabel("salary")
-#matplotlib.pyplot.ylabel("bonus")
-matplotlib.pyplot.show()
+matplotlib.pyplot.ylabel("bonus")
+#matplotlib.pyplot.show()
 
-print count_poi
+print "POIs: ", count_poi
 
 ### Task 4: Try a variety of classifiers
 ### Please name your classifier clf for easy export below.
@@ -131,9 +134,7 @@ print count_poi
 #clf = GaussianNB()
 #clf.fit(features, labels)
 
-from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier(random_state=0, max_depth=3)
-clf.fit(features, labels)
+
 
 #from sklearn.preprocessing import Imputer
 #imp = Imputer(missing_values=0, strategy='mean', axis=0)
@@ -148,6 +149,32 @@ clf.fit(features, labels)
 #clf = RandomForestClassifier(n_estimators=10)
 #clf = clf.fit(features, labels)
 
+
+from sklearn.pipeline import Pipeline
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.decomposition import PCA
+
+estimators = [('reduce_dim', PCA(n_components=3)), ('decisontree', DecisionTreeClassifier(random_state=0, max_depth=3))]
+clf = Pipeline(estimators)
+
+clf.fit(features, labels)
+
+#pca = PCA(n_components=3)
+#pca = PCA()
+
+
+#print features_list
+#print features[10]
+#print features[30]
+#features = pca.fit_transform(features)
+#print features[10]
+#print features[30]
+#print pca.components_ 
+#print("PCA Explained: ", pca.explained_variance_ratio_) 
+
+
+#clf = DecisionTreeClassifier(random_state=0, max_depth=3)
+#clf.fit(features, labels)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
