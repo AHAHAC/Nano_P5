@@ -22,9 +22,9 @@ from tester import dump_classifier_and_data
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi','salary', 'bonus', 'total_payments', 'exercised_stock_options', 
-		'from_poi_to_this_person', 'from_this_person_to_poi', 'shared_receipt_with_poi',  'to_messages'] # You will need to use more features
-		#'director_fees',
+features_list = ['poi','salary', 'bonus', 'total_payments', 'exercised_stock_options', 'director_fees',
+		'from_poi_to_this_person', 'from_this_person_to_poi',   'to_messages'] # You will need to use more features
+		#'shared_receipt_with_poi',
 
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
@@ -100,7 +100,7 @@ for point in data:
     if float(point[0]) == 0.0 :
     	# Non POI
 	#matplotlib.pyplot.scatter( salary, tpayments, c='white' )
-	#matplotlib.pyplot.scatter( salary, bonus, c='red' )
+	matplotlib.pyplot.scatter( salary, bonus, c='red' )
 	#matplotlib.pyplot.scatter( salary, sal_total, c='black' )
 	#print salary,':', sal_total
 	count_nonpoi = count_nonpoi + 1
@@ -110,7 +110,7 @@ for point in data:
     	#POI
 	count_poi = count_poi + 1
 	#matplotlib.pyplot.scatter( salary, tpayments, c='blue' )
-	#matplotlib.pyplot.scatter( salary, bonus, c='yellow' )
+	matplotlib.pyplot.scatter( salary, bonus, c='yellow' )
 	#matplotlib.pyplot.scatter( salary, sal_total, c='red' )
     	#matplotlib.pyplot.scatter( salary, director_fee, c='yellow' )
 
@@ -134,6 +134,20 @@ print count_poi
 from sklearn.tree import DecisionTreeClassifier
 clf = DecisionTreeClassifier(random_state=0, max_depth=3)
 clf.fit(features, labels)
+
+#from sklearn.preprocessing import Imputer
+#imp = Imputer(missing_values=0, strategy='mean', axis=0)
+#imp.fit(features)
+#features = imp.transform(features)
+
+#from sklearn.svm import SVC
+#clf = SVC(verbose=True)
+#clf.fit(features, labels) 
+
+#from sklearn.ensemble import RandomForestClassifier
+#clf = RandomForestClassifier(n_estimators=10)
+#clf = clf.fit(features, labels)
+
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
