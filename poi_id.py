@@ -22,22 +22,23 @@ from tester import dump_classifier_and_data
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-features_list = ['poi','salary', 'bonus', 'total_payments', 'exercised_stock_options', 'director_fees',
-		'from_poi_to_this_person', 'from_this_person_to_poi'] # You will need to use more features
+features_list = ['poi', 'salary', 'bonus', 'total_payments', 'exercised_stock_options', 'director_fees'] # You will need to use more features
 		#'shared_receipt_with_poi',
-		#, 'to_messages'
-		
+		#, 'to_messages',
+		#'from_poi_to_this_person', 'from_this_person_to_poi'
+
+print features_list
+
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
-print "Data points: ", len(data_dict)
-#print data_dict[data_dict.keys()[0]]
+print "Total data points: ", len(data_dict)
 
 ### Task 2: Remove outliers
-
+#Remove "TOTAL" line
 data_dict.pop( "TOTAL", 0 ) 
-
+#define a function to convert string to float. Used for removing outliers.
 def num(s):
     try:
         ret = float(s)
@@ -47,26 +48,35 @@ def num(s):
         	return ret
     except ValueError:
         return 0.0
-
+#Let's sort data by bonuses, salary, exercised stock options. And get 10% of points.
 data_sorted = sorted( zip(data_dict.keys(), 
 			[ data_dict[a]["salary"] for a in data_dict], 
 			[ data_dict[b]["bonus"] for b in data_dict],
 			[ data_dict[c]["exercised_stock_options"] for c in data_dict]),
 		key=lambda x:( num(x[2]), num(x[1]), num(x[3]), x[0]), reverse = True)[0:int(round(len(data_dict)*0.1))]
-
+#Remove 10% of data points with the highest bonuses
 for x in data_sorted:
 	data_dict.pop(x[0],0)
 	print "Popped: ", x[0]
 
+#Print 5 datapoint
+i = 0
+for x in data_dict:
+	print x
+	print data_dict[x]
+	print "--------------"
+	i = i + 1
+	if i >= 5:
+		break
+
+print "Data points after outliers removal:", len(data_dict)
 
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 poi_count = 0
+#Let create a new feature: ratio of salary and total payments
 for x in my_dataset:
-	#print 'Old salary:', my_dataset[x]['salary']
-	#my_dataset[x]['salary'] = num(my_dataset[x]['salary']) + num(my_dataset[x]['director_fees'])
-	#print 'New salary:', my_dataset[x]['salary']
 	if math.isnan(num(my_dataset[x]['total_payments'])):
 		my_dataset[x]['ratio_sal_totalp'] = 0.0
 	else:
@@ -74,23 +84,34 @@ for x in my_dataset:
 			my_dataset[x]['ratio_sal_totalp'] = 0.0
 		else:
 			my_dataset[x]['ratio_sal_totalp'] = num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
-			#my_dataset[x]['ratio_sal_totalp'] = num(my_dataset[x]['salary'])/num(my_dataset[x]['exercised_stock_options'])
-			#if my_dataset[x]['poi']:
-			#	print 'POI:', num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
-			#else:
-			#	print 'NON-POI:', num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
-			#print 'salary:', num(my_dataset[x]['salary'])
-			#print 'total paymnt:', num(my_dataset[x]['total_payments'])
+	if math.isnan(num(my_dataset[x]['to_messages'])) | (num(my_dataset[x]['to_messages']) == 0.0):
+		my_dataset[x]['to2from_poi_to_this_person'] = 0.0
+	else:
+		my_dataset[x]['to2from_poi_to_this_person'] = num(my_dataset[x]['from_poi_to_this_person'])/num(my_dataset[x]['to_messages'])
+	if math.isnan(num(my_dataset[x]['from_messages'])) | (num(my_dataset[x]['from_messages']) == 0.0):
+		my_dataset[x]['from2from_this_person_to_poi'] = 0.0
+	else:
+		my_dataset[x]['from2from_this_person_to_poi'] = num(my_dataset[x]['from_this_person_to_poi'])/num(my_dataset[x]['from_messages'])
 
 features_list.append("ratio_sal_totalp")
+features_list.append("to2from_poi_to_this_person")
+features_list.append("from2from_this_person_to_poi")
 
 ### Extract features and labels from dataset for local testing
-data = featureFormat(my_dataset, features_list, sort_keys = True)
+data = featureFormat(my_dataset, features_list, sort_keys = False) #17/05/2016 changed sort_keys from True to False
 labels, features = targetFeatureSplit(data)
 
 count_poi = 0
 count_nonpoi = 0
 count_all = len(data)
+
+print "Count all after feature split:", count_all
+print "-----------3-------------"
+print "0:",data[0]
+print "1:",data[1]
+print "2:",data[2]
+print "3:",data[3]
+print "-----------4-------------"
 
 for point in data:
     salary = point[1]
@@ -108,7 +129,6 @@ for point in data:
 	#print salary,':', sal_total
 	count_nonpoi = count_nonpoi + 1
     	#matplotlib.pyplot.scatter( salary, director_fee, c='black' )
-    	
     else:
     	#POI
 	count_poi = count_poi + 1
@@ -122,6 +142,7 @@ matplotlib.pyplot.ylabel("bonus")
 #matplotlib.pyplot.show()
 
 print "POIs: ", count_poi
+print "NON-POIs: ", count_nonpoi
 
 ### Task 4: Try a variety of classifiers
 ### Please name your classifier clf for easy export below.
@@ -154,11 +175,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.decomposition import PCA
 
-estimators = [('reduce_dim', PCA(n_components=3)), ('decisontree', DecisionTreeClassifier(random_state=0, max_depth=3))]
+estimators = [('reduce_dim', PCA(n_components=4)), ('decisontree', DecisionTreeClassifier(random_state=0, max_depth=3))]
 clf = Pipeline(estimators)
 
 clf.fit(features, labels)
-
+print features[0]
+print features[1]
+print features[2]
 #pca = PCA(n_components=3)
 #pca = PCA()
 
@@ -169,8 +192,9 @@ clf.fit(features, labels)
 #features = pca.fit_transform(features)
 #print features[10]
 #print features[30]
-#print pca.components_ 
-#print("PCA Explained: ", pca.explained_variance_ratio_) 
+pca = clf.named_steps['reduce_dim']
+print("PCA Explained: ", pca.explained_variance_ratio_) 
+print pca.components_ 
 
 
 #clf = DecisionTreeClassifier(random_state=0, max_depth=3)
