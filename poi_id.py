@@ -175,16 +175,15 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.decomposition import PCA
 
-estimators = [('reduce_dim', PCA(n_components=4)), ('decisontree', DecisionTreeClassifier(random_state=0, max_depth=3))]
+estimators = [('reduce_dim', PCA(n_components=3)), ('decisiontree', DecisionTreeClassifier(random_state=0, max_depth=3))]
 clf = Pipeline(estimators)
 
 clf.fit(features, labels)
-print features[0]
-print features[1]
-print features[2]
+#print features[0]
+#print features[1]
+#print features[2]
 #pca = PCA(n_components=3)
 #pca = PCA()
-
 
 #print features_list
 #print features[10]
@@ -195,7 +194,6 @@ print features[2]
 pca = clf.named_steps['reduce_dim']
 print("PCA Explained: ", pca.explained_variance_ratio_) 
 print pca.components_ 
-
 
 #clf = DecisionTreeClassifier(random_state=0, max_depth=3)
 #clf.fit(features, labels)
