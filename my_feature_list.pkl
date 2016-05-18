@@ -11,7 +11,7 @@ aS'exercised_stock_options'
 p5
 aS'director_fees'
 p6
-aS'ratio_sal_totalp'
+aS'ratio_exso_totalp'
 p7
 aS'to2from_poi_to_this_person'
 p8

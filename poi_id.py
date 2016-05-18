@@ -37,8 +37,13 @@ print "Total data points: ", len(data_dict)
 
 ### Task 2: Remove outliers
 #Remove "TOTAL" line
-data_dict.pop( "TOTAL", 0 ) 
-#define a function to convert string to float. Used for removing outliers.
+data_dict.pop( "TOTAL", 0 )
+print "Data points after outliers removal:", len(data_dict)
+
+### Task 3: Create new feature(s)
+### Store to my_dataset for easy export below.
+
+#define a function to convert string to float.
 def num(s):
     try:
         ret = float(s)
@@ -48,42 +53,35 @@ def num(s):
         	return ret
     except ValueError:
         return 0.0
-#Let's sort data by bonuses, salary, exercised stock options. And get 10% of points.
-data_sorted = sorted( zip(data_dict.keys(), 
-			[ data_dict[a]["salary"] for a in data_dict], 
-			[ data_dict[b]["bonus"] for b in data_dict],
-			[ data_dict[c]["exercised_stock_options"] for c in data_dict]),
-		key=lambda x:( num(x[2]), num(x[1]), num(x[3]), x[0]), reverse = True)[0:int(round(len(data_dict)*0.1))]
-#Remove 10% of data points with the highest bonuses
-for x in data_sorted:
-	data_dict.pop(x[0],0)
-	print "Popped: ", x[0]
 
-#Print 5 datapoint
-i = 0
-for x in data_dict:
-	print x
-	print data_dict[x]
-	print "--------------"
-	i = i + 1
-	if i >= 5:
-		break
-
-print "Data points after outliers removal:", len(data_dict)
-
-### Task 3: Create new feature(s)
-### Store to my_dataset for easy export below.
 my_dataset = data_dict
 poi_count = 0
 #Let create a new feature: ratio of salary and total payments
+#for x in my_dataset:
+#	if math.isnan(num(my_dataset[x]['total_payments'])):
+#		my_dataset[x]['ratio_sal_totalp'] = 0.0
+#	else:
+#		if num(my_dataset[x]['total_payments']) == 0.0:
+#			my_dataset[x]['ratio_sal_totalp'] = 0.0
+#		else:
+#			my_dataset[x]['ratio_sal_totalp'] = num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
+#	if math.isnan(num(my_dataset[x]['to_messages'])) | (num(my_dataset[x]['to_messages']) == 0.0):
+#		my_dataset[x]['to2from_poi_to_this_person'] = 0.0
+#	else:
+#		my_dataset[x]['to2from_poi_to_this_person'] = num(my_dataset[x]['from_poi_to_this_person'])/num(my_dataset[x]['to_messages'])
+#	if math.isnan(num(my_dataset[x]['from_messages'])) | (num(my_dataset[x]['from_messages']) == 0.0):
+#		my_dataset[x]['from2from_this_person_to_poi'] = 0.0
+#	else:
+#		my_dataset[x]['from2from_this_person_to_poi'] = num(my_dataset[x]['from_this_person_to_poi'])/num(my_dataset[x]['from_messages'])
+
 for x in my_dataset:
 	if math.isnan(num(my_dataset[x]['total_payments'])):
-		my_dataset[x]['ratio_sal_totalp'] = 0.0
+		my_dataset[x]['ratio_exso_totalp'] = 0.0
 	else:
 		if num(my_dataset[x]['total_payments']) == 0.0:
-			my_dataset[x]['ratio_sal_totalp'] = 0.0
+			my_dataset[x]['ratio_exso_totalp'] = 0.0
 		else:
-			my_dataset[x]['ratio_sal_totalp'] = num(my_dataset[x]['salary'])/num(my_dataset[x]['total_payments'])
+			my_dataset[x]['ratio_exso_totalp'] = num(my_dataset[x]['exercised_stock_options'])/num(my_dataset[x]['total_payments'])
 	if math.isnan(num(my_dataset[x]['to_messages'])) | (num(my_dataset[x]['to_messages']) == 0.0):
 		my_dataset[x]['to2from_poi_to_this_person'] = 0.0
 	else:
@@ -93,10 +91,12 @@ for x in my_dataset:
 	else:
 		my_dataset[x]['from2from_this_person_to_poi'] = num(my_dataset[x]['from_this_person_to_poi'])/num(my_dataset[x]['from_messages'])
 
-features_list.append("ratio_sal_totalp")
+#features_list.append("ratio_sal_totalp")
+#features_list.append("ratio_bonus_totalp")
+features_list.append("ratio_exso_totalp")
 features_list.append("to2from_poi_to_this_person")
 features_list.append("from2from_this_person_to_poi")
-
+print "Final features list:", features_list
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = False) #17/05/2016 changed sort_keys from True to False
 labels, features = targetFeatureSplit(data)
@@ -119,8 +119,6 @@ for point in data:
     tpayments = point[3]
     exoptions = point[4]
     sal_total = point[7]
-    #director_fee = point[8]
-    #print point[0]
     if float(point[0]) == 0.0 :
     	# Non POI
 	#matplotlib.pyplot.scatter( salary, tpayments, c='white' )
@@ -153,9 +151,6 @@ print "NON-POIs: ", count_nonpoi
 # Provided to give you a starting point. Try a variety of classifiers.
 #from sklearn.naive_bayes import GaussianNB
 #clf = GaussianNB()
-#clf.fit(features, labels)
-
-
 
 #from sklearn.preprocessing import Imputer
 #imp = Imputer(missing_values=0, strategy='mean', axis=0)
@@ -164,39 +159,28 @@ print "NON-POIs: ", count_nonpoi
 
 #from sklearn.svm import SVC
 #clf = SVC(verbose=True)
-#clf.fit(features, labels) 
 
-#from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 #clf = RandomForestClassifier(n_estimators=10)
-#clf = clf.fit(features, labels)
 
+#clf = DecisionTreeClassifier(random_state=0, max_depth=3)
 
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.decomposition import PCA
 
-estimators = [('reduce_dim', PCA(n_components=3)), ('decisiontree', DecisionTreeClassifier(random_state=0, max_depth=3))]
+from sklearn.neighbors import KNeighborsClassifier
+
+#estimators = [('reduce_dim', PCA()), ('decisiontree', DecisionTreeClassifier(random_state=0, max_depth=3, min_samples_leaf=2))]
+#estimators = [('reduce_dim', PCA()), ('decisiontree', DecisionTreeClassifier(random_state=0, max_depth=5))]
+#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', RandomForestClassifier(n_estimators=120, min_samples_leaf=2))]
+#estimators = [('reduce_dim', PCA(n_components=3)), ('classifier', SVC())]
+#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', GaussianNB())]
+#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', AdaBoostClassifier(n_estimators=100))]
+estimators = [('reduce_dim', PCA(n_components=3)), ('classifier', KNeighborsClassifier(n_neighbors=3))]
+
 clf = Pipeline(estimators)
-
-clf.fit(features, labels)
-#print features[0]
-#print features[1]
-#print features[2]
-#pca = PCA(n_components=3)
-#pca = PCA()
-
-#print features_list
-#print features[10]
-#print features[30]
-#features = pca.fit_transform(features)
-#print features[10]
-#print features[30]
-pca = clf.named_steps['reduce_dim']
-print("PCA Explained: ", pca.explained_variance_ratio_) 
-print pca.components_ 
-
-#clf = DecisionTreeClassifier(random_state=0, max_depth=3)
-#clf.fit(features, labels)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -209,6 +193,22 @@ print pca.components_
 from sklearn.cross_validation import train_test_split
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
+
+from sklearn.cross_validation import cross_val_score
+
+clf.fit(features_train, labels_train)
+
+##dt = clf.named_steps['decisiontree']
+##print "Feature importances:", dt.feature_importances_
+
+pca = clf.named_steps['reduce_dim']
+print("PCA Explained: ", pca.explained_variance_ratio_) 
+print pca.components_ 
+
+scores = cross_val_score(clf, features_test, labels_test)
+print "Cross-validation scores mean: ", scores.mean() 
+
+print "Classifier score: ", clf.score(features_test, labels_test)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
 ### check your results. You do not need to change anything below, but make sure
