@@ -149,7 +149,7 @@ print "NON-POIs: ", count_nonpoi
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
 # Provided to give you a starting point. Try a variety of classifiers.
-#from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import GaussianNB
 #clf = GaussianNB()
 
 #from sklearn.preprocessing import Imputer
@@ -157,7 +157,7 @@ print "NON-POIs: ", count_nonpoi
 #imp.fit(features)
 #features = imp.transform(features)
 
-#from sklearn.svm import SVC
+from sklearn.svm import SVC
 #clf = SVC(verbose=True)
 
 from sklearn.ensemble import RandomForestClassifier
@@ -172,13 +172,14 @@ from sklearn.decomposition import PCA
 
 from sklearn.neighbors import KNeighborsClassifier
 
-#estimators = [('reduce_dim', PCA()), ('decisiontree', DecisionTreeClassifier(random_state=0, max_depth=3, min_samples_leaf=2))]
-#estimators = [('reduce_dim', PCA()), ('decisiontree', DecisionTreeClassifier(random_state=0, max_depth=5))]
-#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', RandomForestClassifier(n_estimators=120, min_samples_leaf=2))]
-#estimators = [('reduce_dim', PCA(n_components=3)), ('classifier', SVC())]
-#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', GaussianNB())]
-#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', AdaBoostClassifier(n_estimators=100))]
-estimators = [('reduce_dim', PCA(n_components=3)), ('classifier', KNeighborsClassifier(n_neighbors=3))]
+#estimators = [('reduce_dim', PCA()), ('decisiontree', DecisionTreeClassifier(random_state=0, max_depth=3, min_samples_leaf=2))] # precision 0.42186 recall 0.24700
+#estimators = [('reduce_dim', PCA()), ('decisiontree', DecisionTreeClassifier(random_state=0, min_samples_leaf=1))] # precision 0.29493 recall 0.30275
+#estimators = [('reduce_dim', PCA()), ('decisiontree', DecisionTreeClassifier(random_state=0, min_samples_leaf=1, max_features='auto'))] # precision 0.27664 recall 0.28950
+#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', RandomForestClassifier(n_estimators=120, min_samples_leaf=2))] # Accuracy: 0.85760       Precision: 0.43573      Recall: 0.23050 F1: 0.30150     F2: 0.25447
+#estimators = [('reduce_dim', PCA(n_components=3)), ('classifier', SVC())] # Precision or recall may be undefined due to a lack of true positive predicitons.
+#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', GaussianNB())] # Accuracy: 0.85953       Precision: 0.45668      Recall: 0.28200 F1: 0.34869     F2: 0.30536
+#estimators = [('reduce_dim', PCA(n_components=4)), ('classifier', AdaBoostClassifier(n_estimators=100))] #Accuracy: 0.83440       Precision: 0.35765      Recall: 0.30400 F1: 0.32865     F2: 0.31340
+estimators = [('reduce_dim', PCA(n_components=3)), ('classifier', KNeighborsClassifier(n_neighbors=3, algorithm='kd_tree'))] #Accuracy: 0.87220       Precision: 0.53496      Recall: 0.31750 F1: 0.39849     F2: 0.34560
 
 clf = Pipeline(estimators)
 
@@ -198,16 +199,15 @@ from sklearn.cross_validation import cross_val_score
 
 clf.fit(features_train, labels_train)
 
-##dt = clf.named_steps['decisiontree']
-##print "Feature importances:", dt.feature_importances_
+#dt = clf.named_steps['decisiontree']
+#print "Feature importances:", dt.feature_importances_
 
 pca = clf.named_steps['reduce_dim']
 print("PCA Explained: ", pca.explained_variance_ratio_) 
 print pca.components_ 
 
 scores = cross_val_score(clf, features_test, labels_test)
-print "Cross-validation scores mean: ", scores.mean() 
-
+print "Cross-validation scores mean: ", scores.mean()
 print "Classifier score: ", clf.score(features_test, labels_test)
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
