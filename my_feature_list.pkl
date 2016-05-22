@@ -9,9 +9,9 @@ aS'total_payments'
 p4
 aS'exercised_stock_options'
 p5
-aS'director_fees'
+aS'ratio_bonus_totalp'
 p6
-aS'ratio_exso_totalp'
+aS'ratio_exso_totals'
 p7
 aS'to2from_poi_to_this_person'
 p8
