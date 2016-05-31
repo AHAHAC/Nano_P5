@@ -26,11 +26,6 @@ from tester import test_classifier
 ### The first feature must be "poi".
 #features_list = ['poi', 'salary', 'bonus'] # You will need to use more features
 features_list = ['poi', 'salary', 'bonus', 'total_payments', 'exercised_stock_options'] # You will need to use more features
-		#'shared_receipt_with_poi',
-		#, 'to_messages',
-		#, 'total_stock_value' -- Made recall worse!
-		#'from_poi_to_this_person', 'from_this_person_to_poi'
-		#, 'expenses'
 
 #define a function to convert string to float.
 def num(s):
@@ -64,38 +59,20 @@ for key1 in data_dict:
 	num(data_dict[key1]['loan_advances']) + num(data_dict[key1]['other']) + num(data_dict[key1]['expenses']) + num(data_dict[key1]['director_fees'])
 	) 
 	):
-		#print key1
-		#print 'Total payments: ', num(data_dict[key1]['total_payments']), ' ', (num(data_dict[key1]['salary']) + num(data_dict[key1]['bonus']) +
-		#num(data_dict[key1]['long_term_incentive']) + num(data_dict[key1]['deferred_income']) + num(data_dict[key1]['deferral_payments']) +
-		#num(data_dict[key1]['loan_advances']) + num(data_dict[key1]['other']) + num(data_dict[key1]['expenses']) + num(data_dict[key1]['director_fees']))
-		#print num(data_dict[key1]['director_fees']), ' ', num(data_dict[key1]['expenses'])
 		print "Inconsistent financial data: ", key1
-		#data_dict.pop( key1, 0 ) #No fin data at all
 		outliers.append(key1)
 	if ( num(data_dict[key1]['total_stock_value']) <> (num(data_dict[key1]['exercised_stock_options']) + num(data_dict[key1]['restricted_stock']) +
 	num(data_dict[key1]['restricted_stock_deferred'])
 	) 
 	):
-		#print key1
-		#print 'Total Stock Val: ', num(data_dict[key1]['total_stock_value']), ' ', (num(data_dict[key1]['exercised_stock_options']) + num(data_dict[key1]['restricted_stock']) +
-		#num(data_dict[key1]['restricted_stock_deferred'])) 
-		#print num(data_dict[key1]['director_fees']), ' ', num(data_dict[key1]['expenses'])
 		print "Inconsistent stock data: ", key1
-		#data_dict.pop( key1, 0 ) #No fin data at all
 		outliers.append(key1)
 	if (data_dict[key1]['total_payments'] == 'NaN') & (data_dict[key1]['total_stock_value'] == 'NaN'):
 		print 'No data at all ', key1
-		#data_dict.pop( key1, 0 ) #No fin data at all
 		outliers.append(key1)
 		
 for o in outliers:
 	data_dict.pop( o, 0 ) #No fin data at all
-
-#data_dict.pop( "BELFER ROBERT", 0 ) #Non consistent data
-#data_dict.pop( "BHATNAGAR SANJAY", 0 ) #Non consistent data
-#data_dict.pop( "POWERS WILLIAM", 0 ) #No fin data at all
-#data_dict.pop( "LOCKHART EUGENE E", 0 ) #No fin data at all
-#data_dict.pop( "CHAN RONNIE", 0 ) #No fin data at all
 
 print "Data points after outliers removal:", len(data_dict)
 
