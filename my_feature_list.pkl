@@ -13,8 +13,4 @@ aS'ratio_bonus_totalp'
 p6
 aS'ratio_exso_totals'
 p7
-aS'to2from_poi_to_this_person'
-p8
-aS'from2from_this_person_to_poi'
-p9
 a.
